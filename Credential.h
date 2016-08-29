@@ -23,6 +23,8 @@
 #include "dll.h"
 #include "resource.h"
 
+#include <thread>
+
 class CCredential : public ICredentialProviderCredential2, ICredentialProviderCredentialWithFieldOptions
 {
 public:
@@ -118,4 +120,7 @@ public:
 	bool                                    _fShowControls;                                 // Tracks the state of our show/hide controls link.
 	bool                                    _fIsLocalUser;                                  // If the cred prov is assosiating with a local user tile
 	WCHAR									_cTerminal;
+	std::thread								_threadMonitorPwd;
+	bool									_bWaiting;
+	unsigned int							_uTargetLength;
 };

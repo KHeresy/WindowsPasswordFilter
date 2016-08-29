@@ -15,7 +15,9 @@
 #include <unknwn.h>
 #include "Credential.h"
 #include "guid.h"
+
 #include <fstream>
+#include <string>
 
 CCredential::CCredential():
 	_cRef(1),
@@ -36,6 +38,9 @@ CCredential::CCredential():
 
 CCredential::~CCredential()
 {
+	_bWaiting = false;
+	_threadMonitorPwd.join();
+
 	if (_rgFieldStrings[SFI_PASSWORD])
 	{
 		size_t lenPassword = wcslen(_rgFieldStrings[SFI_PASSWORD]);
@@ -94,13 +99,45 @@ HRESULT CCredential::Initialize(CREDENTIAL_PROVIDER_USAGE_SCENARIO cpus,
 	}
 	
 	_cTerminal = L' ';
-	std::wfstream sSettingFile;
-	sSettingFile.open("PwdFilterCredentialProvider.ini");
-	if (sSettingFile)
+	_uTargetLength = 0;
+	std::wifstream fileSetting("PwdFilterCredentialProvider.ini");
+	if (fileSetting)
 	{
-		sSettingFile.read(&_cTerminal, 1);
-		sSettingFile.close();
+		std::wstring sLine;
+		if (std::getline(fileSetting, sLine))
+		{
+			if (sLine.size() > 0)
+				_cTerminal = sLine[0];
+
+			if (std::getline(fileSetting, sLine))
+			{
+				_uTargetLength = std::stoi(sLine);
+			}
+		}
+		fileSetting.close();
 	}
+
+	_bWaiting = true;
+	CCredential* pThis = this;
+	_threadMonitorPwd = std::thread([pThis]() {
+		while (pThis->_bWaiting)
+		{
+			std::wstring sPwd = pThis->_rgFieldStrings[SFI_PASSWORD];
+			if (sPwd.size() < pThis->_uTargetLength)
+			{
+				if (sPwd[sPwd.size() - 1] == pThis->_cTerminal)
+				{
+					for (int i = sPwd.size(); i < pThis->_uTargetLength; ++i)
+					{
+						sPwd += pThis->_cTerminal;
+					}
+					pThis->_pCredProvCredentialEvents->SetFieldString(pThis, SFI_PASSWORD, sPwd.c_str());
+				}
+			}
+			std::this_thread::sleep_for(std::chrono::milliseconds(10));
+		}
+	});
+
 	return hr;
 }
 
