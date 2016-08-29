@@ -76,18 +76,6 @@ HRESULT CCredential::Initialize(CREDENTIAL_PROVIDER_USAGE_SCENARIO cpus,
 	// Initialize the String value of all the fields.
 	if (SUCCEEDED(hr))
 	{
-		hr = SHStrDupW(L"Sample Credential", &_rgFieldStrings[SFI_LABEL]);
-	}
-	if (SUCCEEDED(hr))
-	{
-		hr = SHStrDupW(L"Sample Credential Provider", &_rgFieldStrings[SFI_LARGE_TEXT]);
-	}
-	if (SUCCEEDED(hr))
-	{
-		hr = SHStrDupW(L"Edit Text", &_rgFieldStrings[SFI_EDIT_TEXT]);
-	}
-	if (SUCCEEDED(hr))
-	{
 		hr = SHStrDupW(L"", &_rgFieldStrings[SFI_PASSWORD]);
 	}
 	if (SUCCEEDED(hr))
@@ -96,71 +84,7 @@ HRESULT CCredential::Initialize(CREDENTIAL_PROVIDER_USAGE_SCENARIO cpus,
 	}
 	if (SUCCEEDED(hr))
 	{
-		hr = SHStrDupW(L"Checkbox", &_rgFieldStrings[SFI_CHECKBOX]);
-	}
-	if (SUCCEEDED(hr))
-	{
-		hr = SHStrDupW(L"Combobox", &_rgFieldStrings[SFI_COMBOBOX]);
-	}
-	if (SUCCEEDED(hr))
-	{
-		hr = SHStrDupW(L"Launch helper window", &_rgFieldStrings[SFI_LAUNCHWINDOW_LINK]);
-	}
-	if (SUCCEEDED(hr))
-	{
-		hr = SHStrDupW(L"Hide additional controls", &_rgFieldStrings[SFI_HIDECONTROLS_LINK]);
-	}
-	if (SUCCEEDED(hr))
-	{
 		hr = pcpUser->GetStringValue(PKEY_Identity_QualifiedUserName, &_pszQualifiedUserName);
-	}
-	if (SUCCEEDED(hr))
-	{
-		PWSTR pszUserName;
-		pcpUser->GetStringValue(PKEY_Identity_UserName, &pszUserName);
-		if (pszUserName != nullptr)
-		{
-			wchar_t szString[256];
-			StringCchPrintf(szString, ARRAYSIZE(szString), L"User Name: %s", pszUserName);
-			hr = SHStrDupW(szString, &_rgFieldStrings[SFI_FULLNAME_TEXT]);
-			CoTaskMemFree(pszUserName);
-		}
-		else
-		{
-			hr =  SHStrDupW(L"User Name is NULL", &_rgFieldStrings[SFI_FULLNAME_TEXT]);
-		}
-	}
-	if (SUCCEEDED(hr))
-	{
-		PWSTR pszDisplayName;
-		pcpUser->GetStringValue(PKEY_Identity_DisplayName, &pszDisplayName);
-		if (pszDisplayName != nullptr)
-		{
-			wchar_t szString[256];
-			StringCchPrintf(szString, ARRAYSIZE(szString), L"Display Name: %s", pszDisplayName);
-			hr = SHStrDupW(szString, &_rgFieldStrings[SFI_DISPLAYNAME_TEXT]);
-			CoTaskMemFree(pszDisplayName);
-		}
-		else
-		{
-			hr = SHStrDupW(L"Display Name is NULL", &_rgFieldStrings[SFI_DISPLAYNAME_TEXT]);
-		}
-	}
-	if (SUCCEEDED(hr))
-	{
-		PWSTR pszLogonStatus;
-		pcpUser->GetStringValue(PKEY_Identity_LogonStatusString, &pszLogonStatus);
-		if (pszLogonStatus != nullptr)
-		{
-			wchar_t szString[256];
-			StringCchPrintf(szString, ARRAYSIZE(szString), L"Logon Status: %s", pszLogonStatus);
-			hr = SHStrDupW(szString, &_rgFieldStrings[SFI_LOGONSTATUS_TEXT]);
-			CoTaskMemFree(pszLogonStatus);
-		}
-		else
-		{
-			hr = SHStrDupW(L"Logon Status is NULL", &_rgFieldStrings[SFI_LOGONSTATUS_TEXT]);
-		}
 	}
 
 	if (SUCCEEDED(hr))
@@ -345,86 +269,26 @@ HRESULT CCredential::SetStringValue(DWORD dwFieldID, _In_ PCWSTR pwz)
 // Returns whether a checkbox is checked or not as well as its label.
 HRESULT CCredential::GetCheckboxValue(DWORD dwFieldID, _Out_ BOOL *pbChecked, _Outptr_result_nullonfailure_ PWSTR *ppwszLabel)
 {
-	HRESULT hr;
-	*ppwszLabel = nullptr;
-
-	// Validate parameters.
-	if (dwFieldID < ARRAYSIZE(_rgCredProvFieldDescriptors) &&
-		(CPFT_CHECKBOX == _rgCredProvFieldDescriptors[dwFieldID].cpft))
-	{
-		*pbChecked = _fChecked;
-		hr = SHStrDupW(_rgFieldStrings[SFI_CHECKBOX], ppwszLabel);
-	}
-	else
-	{
-		hr = E_INVALIDARG;
-	}
-
-	return hr;
+	return E_INVALIDARG;
 }
 
 // Sets whether the specified checkbox is checked or not.
 HRESULT CCredential::SetCheckboxValue(DWORD dwFieldID, BOOL bChecked)
 {
-	HRESULT hr;
-
-	// Validate parameters.
-	if (dwFieldID < ARRAYSIZE(_rgCredProvFieldDescriptors) &&
-		(CPFT_CHECKBOX == _rgCredProvFieldDescriptors[dwFieldID].cpft))
-	{
-		_fChecked = bChecked;
-		hr = S_OK;
-	}
-	else
-	{
-		hr = E_INVALIDARG;
-	}
-
-	return hr;
+	return E_INVALIDARG;
 }
 
 // Returns the number of items to be included in the combobox (pcItems), as well as the
 // currently selected item (pdwSelectedItem).
 HRESULT CCredential::GetComboBoxValueCount(DWORD dwFieldID, _Out_ DWORD *pcItems, _Deref_out_range_(<, *pcItems) _Out_ DWORD *pdwSelectedItem)
 {
-	HRESULT hr;
-	*pcItems = 0;
-	*pdwSelectedItem = 0;
-
-	// Validate parameters.
-	if (dwFieldID < ARRAYSIZE(_rgCredProvFieldDescriptors) &&
-		(CPFT_COMBOBOX == _rgCredProvFieldDescriptors[dwFieldID].cpft))
-	{
-		*pcItems = ARRAYSIZE(s_rgComboBoxStrings);
-		*pdwSelectedItem = 0;
-		hr = S_OK;
-	}
-	else
-	{
-		hr = E_INVALIDARG;
-	}
-
-	return hr;
+	return E_INVALIDARG;
 }
 
 // Called iteratively to fill the combobox with the string (ppwszItem) at index dwItem.
 HRESULT CCredential::GetComboBoxValueAt(DWORD dwFieldID, DWORD dwItem, _Outptr_result_nullonfailure_ PWSTR *ppwszItem)
 {
-	HRESULT hr;
-	*ppwszItem = nullptr;
-
-	// Validate parameters.
-	if (dwFieldID < ARRAYSIZE(_rgCredProvFieldDescriptors) &&
-		(CPFT_COMBOBOX == _rgCredProvFieldDescriptors[dwFieldID].cpft))
-	{
-		hr = SHStrDupW(s_rgComboBoxStrings[dwItem], ppwszItem);
-	}
-	else
-	{
-		hr = E_INVALIDARG;
-	}
-
-	return hr;
+	return E_INVALIDARG;
 }
 
 // Called when the user changes the selected item in the combobox.
@@ -450,50 +314,7 @@ HRESULT CCredential::SetComboBoxSelectedValue(DWORD dwFieldID, DWORD dwSelectedI
 // Called when the user clicks a command link.
 HRESULT CCredential::CommandLinkClicked(DWORD dwFieldID)
 {
-	HRESULT hr = S_OK;
-
-	CREDENTIAL_PROVIDER_FIELD_STATE cpfsShow = CPFS_HIDDEN;
-
-	// Validate parameter.
-	if (dwFieldID < ARRAYSIZE(_rgCredProvFieldDescriptors) &&
-		(CPFT_COMMAND_LINK == _rgCredProvFieldDescriptors[dwFieldID].cpft))
-	{
-		HWND hwndOwner = nullptr;
-		switch (dwFieldID)
-		{
-		case SFI_LAUNCHWINDOW_LINK:
-			if (_pCredProvCredentialEvents)
-			{
-				_pCredProvCredentialEvents->OnCreatingWindow(&hwndOwner);
-			}
-
-			// Pop a messagebox indicating the click.
-			::MessageBox(hwndOwner, L"Command link clicked", L"Click!", 0);
-			break;
-		case SFI_HIDECONTROLS_LINK:
-			_pCredProvCredentialEvents->BeginFieldUpdates();
-			cpfsShow = _fShowControls ? CPFS_DISPLAY_IN_SELECTED_TILE : CPFS_HIDDEN;
-			_pCredProvCredentialEvents->SetFieldState(nullptr, SFI_FULLNAME_TEXT, cpfsShow);
-			_pCredProvCredentialEvents->SetFieldState(nullptr, SFI_DISPLAYNAME_TEXT, cpfsShow);
-			_pCredProvCredentialEvents->SetFieldState(nullptr, SFI_LOGONSTATUS_TEXT, cpfsShow);
-			_pCredProvCredentialEvents->SetFieldState(nullptr, SFI_CHECKBOX, cpfsShow);
-			_pCredProvCredentialEvents->SetFieldState(nullptr, SFI_EDIT_TEXT, cpfsShow);
-			_pCredProvCredentialEvents->SetFieldState(nullptr, SFI_COMBOBOX, cpfsShow);
-			_pCredProvCredentialEvents->SetFieldString(nullptr, SFI_HIDECONTROLS_LINK, _fShowControls? L"Hide additional controls" : L"Show additional controls");
-			_pCredProvCredentialEvents->EndFieldUpdates();
-			_fShowControls = !_fShowControls;
-			break;
-		default:
-			hr = E_INVALIDARG;
-		}
-
-	}
-	else
-	{
-		hr = E_INVALIDARG;
-	}
-
-	return hr;
+	return E_INVALIDARG;
 }
 
 // Collect the username and password into a serialized credential for the correct usage scenario
