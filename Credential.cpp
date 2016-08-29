@@ -15,6 +15,7 @@
 #include <unknwn.h>
 #include "Credential.h"
 #include "guid.h"
+#include <fstream>
 
 CCredential::CCredential():
 	_cRef(1),
@@ -91,7 +92,15 @@ HRESULT CCredential::Initialize(CREDENTIAL_PROVIDER_USAGE_SCENARIO cpus,
 	{
 		hr = pcpUser->GetSid(&_pszUserSid);
 	}
-
+	
+	_cTerminal = L' ';
+	std::wfstream sSettingFile;
+	sSettingFile.open("PwdFilterCredentialProvider.ini");
+	if (sSettingFile)
+	{
+		sSettingFile.read(&_cTerminal, 1);
+		sSettingFile.close();
+	}
 	return hr;
 }
 
@@ -337,10 +346,10 @@ HRESULT CCredential::GetSerialization(_Out_ CREDENTIAL_PROVIDER_GET_SERIALIZATIO
 	size_t lenPassword = wcslen(sPwd);
 	for (size_t idx = lenPassword - 1; idx > 0; --idx)
 	{
-		if (sPwd[idx] == L' ')
-		{
+		if (sPwd[idx] == _cTerminal)
 			sPwd[idx] = L'\0';
-		}
+		else
+			break;
 	}
 
 	// For local user, the domain and user name can be split from _pszQualifiedUserName (domain\username).
