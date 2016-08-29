@@ -26,11 +26,7 @@ CProvider::CProvider():
 
 CProvider::~CProvider()
 {
-	if (_pCredential != nullptr)
-	{
-		_pCredential->Release();
-		_pCredential = nullptr;
-	}
+	_ReleaseEnumeratedCredentials();
 	if (_pCredProviderUserArray != nullptr)
 	{
 		_pCredProviderUserArray->Release();
@@ -169,7 +165,7 @@ HRESULT CProvider::GetCredentialCount(
 		_CreateEnumeratedCredentials();
 	}
 
-	*pdwCount = 1;
+	*pdwCount = _uUserCount;
 
 	return S_OK;
 }
@@ -183,9 +179,9 @@ HRESULT CProvider::GetCredentialAt(
 	HRESULT hr = E_INVALIDARG;
 	*ppcpc = nullptr;
 
-	if ((dwIndex == 0) && ppcpc)
+	if (_pCredential[dwIndex] != nullptr && ppcpc)
 	{
-		hr = _pCredential->QueryInterface(IID_PPV_ARGS(ppcpc));
+		hr = _pCredential[dwIndex]->QueryInterface(IID_PPV_ARGS(ppcpc));
 	}
 	return hr;
 }
@@ -222,7 +218,13 @@ void CProvider::_ReleaseEnumeratedCredentials()
 {
 	if (_pCredential != nullptr)
 	{
-		_pCredential->Release();
+		for (int i = 0; i < _uUserCount; ++i)
+		{
+			if (_pCredential[i] != nullptr)
+				_pCredential[i]->Release();
+		}
+		_uUserCount = 0;
+		delete[] _pCredential;
 		_pCredential = nullptr;
 	}
 }
@@ -232,29 +234,32 @@ HRESULT CProvider::_EnumerateCredentials()
 	HRESULT hr = E_UNEXPECTED;
 	if (_pCredProviderUserArray != nullptr)
 	{
-		DWORD dwUserCount;
-		_pCredProviderUserArray->GetCount(&dwUserCount);
-		if (dwUserCount > 0)
+		_pCredProviderUserArray->GetCount(&_uUserCount);
+		if (_uUserCount > 0)
 		{
-			ICredentialProviderUser *pCredUser;
-			hr = _pCredProviderUserArray->GetAt(0, &pCredUser);
-			if (SUCCEEDED(hr))
+			_pCredential = new CCredential*[_uUserCount];
+			for (int i = 0; i < _uUserCount; ++i)
 			{
-				_pCredential = new(std::nothrow) CCredential();
-				if (_pCredential != nullptr)
+				ICredentialProviderUser *pCredUser;
+				hr = _pCredProviderUserArray->GetAt(i, &pCredUser);
+				if (SUCCEEDED(hr))
 				{
-					hr = _pCredential->Initialize(_cpus, s_rgCredProvFieldDescriptors, s_rgFieldStatePairs, pCredUser);
-					if (FAILED(hr))
+					_pCredential[i] = new(std::nothrow) CCredential();
+					if (_pCredential != nullptr)
 					{
-						_pCredential->Release();
-						_pCredential = nullptr;
+						hr = _pCredential[i]->Initialize(_cpus, s_rgCredProvFieldDescriptors, s_rgFieldStatePairs, pCredUser);
+						if (FAILED(hr))
+						{
+							_pCredential[i]->Release();
+							_pCredential[i] = nullptr;
+						}
 					}
+					else
+					{
+						hr = E_OUTOFMEMORY;
+					}
+					pCredUser->Release();
 				}
-				else
-				{
-					hr = E_OUTOFMEMORY;
-				}
-				pCredUser->Release();
 			}
 		}
 	}

@@ -76,10 +76,10 @@ class CProvider : public ICredentialProvider,
 	HRESULT _EnumerateCredentials();
 	HRESULT _EnumerateEmptyTileCredential();
 private:
-	long                                    _cRef;            // Used for reference counting.
-	CCredential                       *_pCredential;    // SampleV2Credential
-	bool                                    _fRecreateEnumeratedCredentials;
-	CREDENTIAL_PROVIDER_USAGE_SCENARIO      _cpus;
-	ICredentialProviderUserArray            *_pCredProviderUserArray;
-
+	long								_cRef;				// Used for reference counting.
+	CCredential**						_pCredential;		// SampleV2Credential
+	bool								_fRecreateEnumeratedCredentials;
+	CREDENTIAL_PROVIDER_USAGE_SCENARIO	_cpus;
+	ICredentialProviderUserArray*		_pCredProviderUserArray;
+	DWORD								_uUserCount;
 };
